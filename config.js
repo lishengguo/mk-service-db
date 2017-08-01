@@ -1,10 +1,9 @@
 
 const config = (options) => {
-    if (Array.isArray(options)) {
-        current.dbs = options;
-        options = options[0];
-    }
     Object.assign(current, options)
+    if (!options.host && options.dbs) {
+        Object.assign(current, current.dbs[0])
+    }
     current.init();
     return current;
 }
