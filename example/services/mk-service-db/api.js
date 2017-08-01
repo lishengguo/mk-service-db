@@ -93,5 +93,4 @@ const interceptor = (ctx) => {
 module.exports = Object.assign(api, {
     getDB,
     init,
-    interceptor,
 });
