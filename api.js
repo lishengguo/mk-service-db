@@ -52,7 +52,7 @@ const interceptor = (ctx) => {
     currentDB = currentDB || dbs.currentDB;
 
     if (currentDB && transactionType == 'auto' && !ctx._handler) {
-        var transactionWrapper = (data, ctx) => 
+        var transactionWrapper = (data, ctx) => {
             currentDB.transaction((t) => {
                 try {
                     var promise = ctx._handler(data, ctx);
