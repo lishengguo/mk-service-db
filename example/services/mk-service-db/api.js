@@ -1,55 +1,55 @@
-const config = require('./config').current;
 const Sequelize = require("sequelize")
 const cls = require('continuation-local-storage')
 Sequelize.useCLS(cls.createNamespace('my-own-namespace'))
 
-const api = {
-    currentDB: null,
-}
-
+var config
 const dbs = {}
 
-const getDB = (name) => {
-    return dbs[name || 'currentDB'];
-}
+const api = {
 
-const init = () => {
+    currentDB: null,
 
-    dbs.currentDB = dbs[config.name] = newDB(config);
+    getDB: (name) => dbs[name || 'currentDB'],
 
-    if (Array.isArray(config.dbs)) {
-        config.dbs.filter(d => !dbs[d.name]).forEach(d => {
-            dbs[d.name] = newDB(d);
-        })
-    }
-
-    if (config.server) {
-        var array = config.server.interceptors || [];
-        if (array.filter(a => a == interceptor) == 0) {
-            array.push(interceptor)
+    _init: (current) => {
+        config = current
+        dbs.currentDB = dbs[config.name] = newDB(config)
+        dbs.currentDB.config.transactionType = config.transactionType
+        if (Array.isArray(config.dbs)) {
+            config.dbs.filter(d => !dbs[d.name]).forEach(d => {
+                dbs[d.name] = newDB(d);
+                dbs[d.name].config.transactionType = d.transactionType
+            })
         }
-        config.server.interceptors = array
+        if (config.server) { //注册数据库事务拦截器
+            var array = config.server.interceptors || [];
+            if (array.filter(a => a == interceptor) == 0) {
+                array.push(interceptor)
+            }
+            config.server.interceptors = array
+        }
     }
 }
 
-const newDB = (cfg) => new Sequelize(cfg.database, cfg.user, cfg.pwd, {
-    host: cfg.host,
-    port: cfg.port,
-    dialect: cfg.type,
-});
+function newDB(cfg) {
+    return new Sequelize(cfg.database, cfg.user, cfg.pwd, {
+        host: cfg.host,
+        port: cfg.port,
+        dialect: cfg.type,
+    })
+}
 
-
-const interceptor = (ctx) => {
+function interceptor(ctx) {
     var currentDB = null;
     var serviceConfig = ctx.service.config && ctx.service.config.current;
     var transactionType = ctx.handler.transactionType
         || serviceConfig && serviceConfig.transactionType
-        || serviceConfig && serviceConfig.db && serviceConfig.db.config.current.transactionType;
+        || serviceConfig && serviceConfig.db && serviceConfig.db.config.transactionType;
     if (serviceConfig && serviceConfig.db) {
-        currentDB = ctx.service.config.current.db.api.getDB();
+        currentDB = serviceConfig.db
     }
-    transactionType = transactionType || config.transactionType;
-    currentDB = currentDB || dbs.currentDB;
+    transactionType = transactionType || config.transactionType
+    currentDB = currentDB || dbs.currentDB
 
     if (currentDB && transactionType == 'auto' && !ctx._handler) {
         var transactionWrapper = (data, ctx) => {
@@ -80,17 +80,12 @@ const interceptor = (ctx) => {
                 //throw (ex)
             })
         }
-        ctx._handler = ctx.handler;
-        ctx.handler = transactionWrapper;
-        Object.assign(transactionWrapper, ctx._handler);
+        ctx._handler = ctx.handler
+        ctx.handler = transactionWrapper
+        Object.assign(transactionWrapper, ctx._handler)
     }
 
-    return true;
+    return true
 }
 
-
-
-module.exports = Object.assign(api, {
-    getDB,
-    init,
-});
+module.exports = api
