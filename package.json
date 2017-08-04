@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ziaochina/mk-service-db.git"
+    "url": "git+https://github.com/lishengguo/mk-service-db.git"
   },
   "author": "lsg",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ziaochina/mk-service-db/issues"
+    "url": "https://github.com/lishengguo/mk-service-db/issues"
   },
-  "homepage": "https://github.com/ziaochina/mk-service-db#readme",
+  "homepage": "https://github.com/lishengguo/mk-service-db#readme",
   "dependencies": {
     "continuation-local-storage": "^3.2.0",
     "mysql2": "^1.3.6",
