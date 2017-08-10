@@ -20,13 +20,13 @@ const server = {
     },
     configs: {
         // serviceName: {}
-        "mk-service-db": {
+        "db": {
             name: "bizdata",
             type: "mysql",
             user: "root",
-            pwd: "mypassword",
-            host: "localhost",
-            port: 3306,
+            pwd: "rrsd_2016",
+            host: "mysql.rrtimes.com",
+            port: 30200,
             database: "bizdata_dev",
             transactionType: "auto",
         }
@@ -36,7 +36,7 @@ const server = {
 function configServices(server) {
     var { services, configs } = server;
     Object.keys(services).filter(k => !!services[k].config).forEach(k => {
-        let curCfg = Object.assign({ server }, configs["*"], configs[k]);
+        let curCfg = Object.assign({ server, services }, configs["*"], configs[k]);
         services[k].config(curCfg);
     })
 }

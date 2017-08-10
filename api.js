@@ -52,33 +52,10 @@ function interceptor(ctx) {
     currentDB = currentDB || dbs.currentDB
 
     if (currentDB && transactionType == 'auto' && !ctx._handler) {
-        var transactionWrapper = (data, ctx) => {
-            currentDB.transaction((t) => {
-                try {
-                    var promise = ctx._handler(data, ctx);
-                    if (promise && promise.catch) {
-                        promise.catch(ex => {
-                            //捕获到数据库错误
-                            console.log('捕获到数据库脚本错误')
-                            ctx.error(ex)
-                            throw (ex)
-                        })
-                        return promise;
-                    } else {
-                        promise !== undefined && ctx.return(promise);
-                        console.warn('启用数据库事务，必须返回数据库查询的Promise对象才能自动回滚！')
-                    }
-                } catch (ex) {
-                    //捕获到代码错误
-                    console.log('捕获到api中的代码错误')
-                    ctx.error(ex)
-                    throw (ex)
-                }
-            }).catch(ex => {
-                //console.log('捕获到数据库引擎错误')
-                console.log(ex)
-                //throw (ex)
-            })
+        var transactionWrapper = function () {
+            return currentDB.transaction((t) =>
+                ctx._handler(...arguments)
+            )
         }
         ctx._handler = ctx.handler
         ctx.handler = transactionWrapper
